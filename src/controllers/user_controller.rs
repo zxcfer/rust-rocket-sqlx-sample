@@ -1,3 +1,5 @@
+use std::io::IntoInnerError;
+
 use crate::app::AppState;
 use crate::db::ConnectionDb;
 use crate::dto::user_dto::UserName;
@@ -13,35 +15,52 @@ async fn index(app: &AppState, mut db: ConnectionDb) -> Result<Json<Vec<User>>, 
     Ok(Json(users))
 }
 
-#[post("/add", data = "<name>")]
+// post request with json body
+#[post("/add", data = "<user_json>")]
 #[instrument(name = "user_controller/add", skip_all)]
 async fn add(
     app: &AppState,
     mut db: ConnectionDb,
-    name: Json<UserName>,
+    user_json: Json<UserName>,
 ) -> Result<Json<User>, AppError> {
-    let name = name.into_inner().name;
+
+    let inner = user_json.into_inner();
+    tracing::info!("Received request to add user. Name: {}, Age: {}", inner.name, inner.age);
+
+    let name = inner.name;
+    let age = inner.age;
+
+    // send 400 if age > 32
+    if age > 32 {
+        return Err(AppError::new(400, "age must be less than 32"));
+    }
+
     let user = app
         .use_cases
         .user
-        .create(&app.repos, &mut db, &name)
+        .create(&app.repos, &mut db, &name, age)
         .await?;
     Ok(Json(user))
 }
 
-#[put("/<id>", data = "<name>")]
+#[put("/<id>", data = "<user_json>")]
 #[instrument(name = "user_controller/update", skip_all, fields(id = %id))]
 async fn update(
     app: &AppState,
     mut db: ConnectionDb,
     id: i32,
-    name: Json<UserName>,
+    user_json: Json<UserName>,
 ) -> Result<Json<User>, AppError> {
-    let name = name.into_inner().name;
+
+    let inner = user_json.into_inner();
+    let name = inner.name;
+    let age = inner.age;
+
+
     let user = app
         .use_cases
         .user
-        .update(&app.repos, &mut db, id, &name)
+        .update(&app.repos, &mut db, id, &name, age)
         .await?;
     Ok(Json(user))
 }

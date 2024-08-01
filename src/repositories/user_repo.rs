@@ -16,30 +16,52 @@ impl UserRepoImpl {
 #[automock]
 #[async_trait]
 pub trait UserRepo: Send + Sync {
-    async fn create(&self, con: &mut PgConnection, name: &String) -> Result<User, DbRepoError>;
-    async fn find_all(&self, con: &mut PgConnection) -> Result<Vec<User>, DbRepoError>;
+    async fn create(
+        &self, 
+        con: &mut PgConnection, 
+        name: &String,
+        age: i32
+    ) -> Result<User, DbRepoError>;
+
+    async fn find_all(
+        &self, 
+        con: &mut PgConnection) -> Result<Vec<User>, DbRepoError>;
+
     async fn find_by_id(
         &self,
         con: &mut PgConnection,
         id: i32,
     ) -> Result<Option<User>, DbRepoError>;
+
     async fn update(
         &self,
         con: &mut PgConnection,
         id: i32,
         name: &String,
+        age: i32
     ) -> Result<User, DbRepoError>;
-    async fn delete(&self, con: &mut PgConnection, id: i32) -> Result<(), DbRepoError>;
+
+    async fn delete(
+        &self, 
+        con: &mut PgConnection, 
+        id: i32) -> Result<(), DbRepoError>;
 }
 
 #[async_trait]
 impl UserRepo for UserRepoImpl {
     #[instrument(name = "user_repo/create", skip_all)]
-    async fn create(&self, con: &mut PgConnection, name: &String) -> Result<User, DbRepoError> {
+    async fn create(&self, 
+        con: &mut PgConnection, 
+        name: &String,
+        age: i32) -> Result<User, DbRepoError> {
+
+        // create unwrap age
+        let x = age.to_string().parse::<i32>().unwrap();
+
         query_as!(
             User,
-            "INSERT INTO users (name) VALUES ($1) RETURNING *",
-            name,
+            "INSERT INTO users (name, age) VALUES ($1, $2) RETURNING *",
+            name, age
         )
         .fetch_one(&mut *con)
         .await
@@ -73,11 +95,13 @@ impl UserRepo for UserRepoImpl {
         con: &mut PgConnection,
         id: i32,
         name: &String,
+        age: i32,
     ) -> Result<User, DbRepoError> {
         query_as!(
             User,
-            "UPDATE users SET name = $1 WHERE id = $2 RETURNING *",
+            "UPDATE users SET name = $1, age = $2 WHERE id = $3 RETURNING *",
             name,
+            age,
             id
         )
         .fetch_one(&mut *con)
@@ -129,7 +153,8 @@ mod tests {
         let user = create_user(&mut tx).await.unwrap();
         let repo = UserRepoImpl::new();
         let new_name = "new_name".to_string();
-        let result = repo.update(&mut tx, user.id, &new_name).await;
+        let new_age = 30;
+        let result = repo.update(&mut tx, user.id, &new_name, new_age).await;
         assert!(result.is_ok());
         tx.rollback().await.unwrap();
     }

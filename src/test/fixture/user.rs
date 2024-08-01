@@ -4,6 +4,7 @@ pub fn user_fixture(id: usize) -> User {
     User {
         id: id as i32,
         name: String::from("taro"),
+        age: Some(20),
     }
 }
 

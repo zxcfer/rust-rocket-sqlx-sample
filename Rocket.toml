@@ -1,5 +1,5 @@
 [default.databases.hoge]
-url = "postgres://user:password@localhost/hoge"
+url = "postgres://postgres:postgres@localhost/hoge"
 min_connections = 1
 max_connections = 5
 connect_timeout = 5

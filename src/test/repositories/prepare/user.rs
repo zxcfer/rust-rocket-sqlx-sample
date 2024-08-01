@@ -5,6 +5,7 @@ use sqlx::postgres::PgConnection;
 
 pub async fn create_user(db_con: &mut PgConnection) -> Result<User, DbRepoError> {
     let user_repo = UserRepoImpl::new();
-    let name = "新しいユーザ".to_string();
-    user_repo.create(&mut *db_con, &name).await
+    let name = "fer".to_string();
+    let age = 31;
+    user_repo.create(&mut *db_con, &name, age).await
 }
