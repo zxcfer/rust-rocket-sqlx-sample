@@ -8,6 +8,10 @@
 
 A clean architecture style Sample using Rust's [Rocket](https://rocket.rs/)(v0.5), [sqlx](https://github.com/launchbadge/sqlx)(v0.6) and PostgreSQL.
 
+## TODO
+
+1. Add custom JSON parse to catch errors
+
 ## How to Use
 
 ```shell

@@ -24,7 +24,9 @@ async fn add(
     user_json: Json<UserName>,
 ) -> Result<Json<User>, AppError> {
 
+    tracing::info!("==Stating processing...");
     let inner = user_json.into_inner();
+    
     tracing::info!("Received request to add user. Name: {}, Age: {}", inner.name, inner.age);
 
     let name = inner.name;
